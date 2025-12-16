@@ -1,0 +1,65 @@
+name: agri_link
+description: "Agri-Link: Platform Pesan Bahan dari Petani - Aplikasi mobile untuk Restoran memesan bahan berkualitas dari petani dan supplier lokal."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  provider: ^6.0.0
+  
+  # HTTP Client
+  http: ^1.1.0
+  
+  # Storage
+  shared_preferences: ^2.2.0
+  
+  # JWT Token
+  jwt_decoder: ^2.0.1
+  
+  # Date Picker
+  intl: ^0.18.1
+  
+  # Image Picker
+  image_picker: ^1.0.0
+  
+  # Icons
+  cupertino_icons: ^1.0.2
+  
+  # Networking
+  dio: ^5.2.0
+  
+  # Location
+  geolocator: ^10.1.0
+  location: ^5.0.0
+  
+  # Map
+  google_maps_flutter: ^2.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/
+  
+  # Fonts commented out temporarily for web testing
+  # fonts:
+  #   - family: Poppins
+  #     fonts:
+  #       - asset: assets/fonts/Poppins-Regular.ttf
+  #       - asset: assets/fonts/Poppins-Bold.ttf
+  #         weight: 700
+  #       - asset: assets/fonts/Poppins-SemiBold.ttf
+  #         weight: 600

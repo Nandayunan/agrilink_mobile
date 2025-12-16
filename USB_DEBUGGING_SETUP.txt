@@ -1,0 +1,158 @@
+⚙️ SETUP USB DEBUGGING & CONNECT HANDPHONE
+
+Status Sekarang: Handphone belum terdeteksi oleh flutter/adb
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ STEP 1: ENABLE DEVELOPER OPTIONS
+
+1. Buka: Settings / Pengaturan
+2. Cari: "About phone" / "Tentang ponsel"
+3. Tap "Build number" 7 kali
+4. Anda akan lihat: "You are now a developer!"
+5. Go back to main settings
+
+Catatan: Lokasi bisa berbeda untuk setiap brand
+- Samsung: Settings > About > Build number
+- Xiaomi: Settings > About > MIUI version
+- Oppo: Settings > About > Version
+- Vivo: Settings > About > Build number
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ STEP 2: ENABLE USB DEBUGGING
+
+1. Settings / Pengaturan
+2. Cari: "Developer options" / "Opsi pengembang"
+3. Scroll down cari: "USB Debugging"
+4. Toggle ON (Enable)
+5. Confirm jika ada popup
+
+Sekarang: Settings > (System) > Developer options > USB Debugging ON
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ STEP 3: CONNECT VIA USB
+
+1. Plug kabel USB ke handphone
+2. Di handphone, accept permission popup:
+   "Allow USB debugging?" → Tap "Allow"
+3. Opsi: Check "Always allow from this computer"
+4. Kabel harus terhubung ke port USB 2.0 jika memungkinkan
+
+⚠️ PENTING:
+- Gunakan kabel USB yang BAGUS (bukan charging cable murahan)
+- Gunakan port USB yang berbeda jika tidak detect
+- Jangan gunakan USB hub, langsung ke port komputer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ STEP 4: VERIFY CONNECTION
+
+Buka terminal dan jalankan:
+
+  adb devices
+
+Expected output:
+  List of devices attached
+  XXXXXXXX          device
+
+Jika muncul "device" (bukan "offline" atau "unauthorized"):
+  ✓ Handphone sudah ter-connect!
+  ✓ Siap untuk run flutter app
+
+Jika muncul "offline":
+  → Disconnect USB dan reconnect
+  → Cek apakah USB debugging enable
+
+Jika muncul "unauthorized":
+  → Di handphone, confirm permission popup
+  → Atau uncheck "Always allow" dan reconnect
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ STEP 5: RUN FLUTTER APP
+
+Setelah handphone ter-detect dengan status "device", jalankan:
+
+  cd d:\SEMESTER 7\Pemrogaman_Mobile\TA_MOBILE\agri_link_app
+  flutter run
+
+Flutter akan:
+1. Compile app (2-10 menit untuk first time)
+2. Install APK ke handphone
+3. Run app otomatis
+4. Anda akan lihat app di layar handphone!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🆘 TROUBLESHOOTING
+
+PROBLEM: "adb devices" tidak menunjukkan handphone
+
+SOLUSI 1: Cek USB Driver
+- Install Android Studio (includes USB drivers)
+- Atau install Google USB Driver
+
+SOLUSI 2: Cek Kabel USB
+- Ganti kabel USB (gunakan yang bagus)
+- Coba port USB berbeda
+
+SOLUSI 3: Cek Permission
+- Di handphone: Settings > Developer options > USB Debugging
+- Harus ON
+- Accept permission popup jika ada
+
+SOLUSI 4: Restart ADB
+  adb kill-server
+  adb start-server
+  adb devices
+
+SOLUSI 5: Clean & Reconnect
+- Unplug USB kabel dari handphone
+- Di handphone: Settings > Developer options > Toggle OFF USB Debugging
+- Wait 10 seconds
+- Toggle ON USB Debugging
+- Plug USB kabel kembali
+- Accept permission
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 TIPS
+
+1. Pertama kali:
+   - Harus accept permission di handphone
+   - Opsi "Always allow from this computer" makes it easier
+
+2. Build pertama:
+   - Lambat (5-10 menit)
+   - Sabar, jangan disconnect
+   - Lihat progress di terminal
+
+3. Subsequent builds:
+   - Lebih cepat (1-2 menit)
+   - Hot reload = tekan 'r' di terminal
+
+4. USB Port:
+   - Back ports lebih stable
+   - Hindari USB hub
+   - Gunakan port 2.0/3.0 yang ada di belakang PC
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CHECKLIST SEBELUM RUN:
+
+[ ] USB Debugging sudah ENABLE di handphone
+[ ] Handphone sudah connect via USB
+[ ] Accept permission popup di handphone
+[ ] adb devices menunjukkan handphone dengan status "device"
+[ ] Flutter app sudah tidak ada errors (sudah di-fix sebelumnya)
+
+Jika semua ✓, jalankan:
+  flutter run
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Setelah semua setup, Anda akan lihat app running di handphone! 🎉
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
