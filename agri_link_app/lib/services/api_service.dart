@@ -3,20 +3,32 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+
+const bool useAndroidEmulator = false; // true = emulator, false = HP fisik
 class ApiService {
-  // ✅ BASE URL otomatis sesuai platform
   static String get baseUrl {
-    // Flutter Web
+    // Flutter Web (Chrome) → pakai localhost
     if (kIsWeb) return 'http://localhost:5000/api';
 
-    // Android Emulator: localhost harus diganti 10.0.2.2
+    // Android (emulator atau HP fisik)
     if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:5000/api';
+      if (useAndroidEmulator) {
+        // Emulator Android: alias ke localhost laptop
+        return 'http://10.0.2.2:5000/api';
+      } else {
+        // ⚠️ PENTING: HP fisik - pakai IP Wi‑Fi laptop
+        // IP laptop BERUBAH setiap kali pindah network WiFi!
+        // Cara cek IP: Windows: ipconfig | Linux/Mac: ifconfig
+        // Setelah ubah IP, WAJIB rebuild: flutter clean && flutter run
+        // Dokumentasi lengkap: lihat CONFIGURATION.md
+        return 'http://192.168.1.5:5000/api'; // ⚠️ UPDATE IP INI jika timeout/connection error!
+      }
     }
 
-    // iOS Simulator / Desktop (biasanya bisa localhost)
+    // iOS simulator / desktop
     return 'http://localhost:5000/api';
   }
+
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -77,13 +89,22 @@ class ApiService {
     required String password,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/login'),
-        headers: await getHeaders(withAuth: false),
-        body: jsonEncode({'email': email, 'password': password}),
-      );
+      final url = '$baseUrl/auth/login';
+      debugPrint('🔗 LOGIN URL: $url');
+      debugPrint('📱 Platform: ${defaultTargetPlatform}');
+      debugPrint('🖥️  useAndroidEmulator: $useAndroidEmulator');
+      
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: await getHeaders(withAuth: false),
+            body: jsonEncode({'email': email, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 15));
       return _handleResponse(response);
     } catch (e) {
+      debugPrint('❌ LOGIN ERROR: $e');
+      debugPrint('🌐 Base URL used: $baseUrl');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -374,12 +395,21 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getProvinces() async {
     try {
+      final uri = Uri.parse('$baseUrl/weather/provinces/list');
+      debugPrint('[WEATHER] GET PROVINCES URL: $uri');
+      debugPrint('[WEATHER] Base URL: $baseUrl');
+      
       final response = await http.get(
-        Uri.parse('$baseUrl/weather/provinces/list'),
+        uri,
         headers: await getHeaders(withAuth: false),
       );
+      
+      debugPrint('[WEATHER] GET PROVINCES STATUS: ${response.statusCode}');
+      debugPrint('[WEATHER] GET PROVINCES BODY: ${utf8.decode(response.bodyBytes)}');
+      
       return _handleResponse(response);
     } catch (e) {
+      debugPrint('[WEATHER] GET PROVINCES ERROR: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }

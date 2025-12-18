@@ -5,6 +5,9 @@ const axios = require('axios');
 // Cache weather data in memory
 const weatherCache = {};
 
+// Default ADM4: Gambir, Jakarta Pusat
+const DEFAULT_ADM4 = '31.71.01.1001';
+
 // Get Weather by Province
 router.get('/province/:province', async (req, res) => {
     try {
@@ -21,41 +24,114 @@ router.get('/province/:province', async (req, res) => {
             });
         }
 
-        // Fetch from BMKG API
-        // BMKG provides province list at: https://api.bmkg.go.id/publik/provinsi
-        const provinceResponse = await axios.get('https://api.bmkg.go.id/publik/provinsi');
-        const provinceData = provinceResponse.data.data.find(p => p.nama.toLowerCase().includes(province.toLowerCase()));
+        // Use BMKG API directly with default ADM4
+        console.log('[WEATHER] Fetching weather for ADM4:', DEFAULT_ADM4);
+        
+        const weatherUrl = `https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=${DEFAULT_ADM4}`;
+        console.log('[WEATHER] Weather URL:', weatherUrl);
+        
+        const weatherResponse = await axios.get(weatherUrl, {
+            timeout: 10000,
+            validateStatus: (status) => status < 500,
+        });
 
-        if (!provinceData) {
-            return res.status(404).json({
-                success: false,
-                message: 'Province not found',
-                data: null
-            });
+        console.log('[WEATHER] Weather response status:', weatherResponse.status);
+        console.log('[WEATHER] Weather response data keys:', weatherResponse.data ? Object.keys(weatherResponse.data) : 'no data');
+        
+        if (weatherResponse.status !== 200) {
+            throw new Error(`BMKG Weather API returned status ${weatherResponse.status}: ${JSON.stringify(weatherResponse.data).substring(0, 200)}`);
+        }
+        
+        if (!weatherResponse.data) {
+            throw new Error('BMKG Weather API returned no data');
+        }
+        
+        // Struktur response BMKG: { lokasi: {...}, data: [{ lokasi: {...}, cuaca: [[...]] }] }
+        const weatherDataArray = weatherResponse.data.data;
+        if (!Array.isArray(weatherDataArray) || weatherDataArray.length === 0) {
+            console.error('[WEATHER] Unexpected weather data structure:', JSON.stringify(weatherResponse.data).substring(0, 500));
+            throw new Error('BMKG Weather API returned invalid data structure - expected data array');
         }
 
-        // Get weather forecast
-        const weatherResponse = await axios.get(`https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=${provinceData.id}`);
+        const areaData = weatherDataArray[0];
+        const lokasiRoot = weatherResponse.data.lokasi || areaData?.lokasi || {};
+        if (!areaData || !areaData.cuaca) {
+            console.error('[WEATHER] Area data or cuaca missing:', {
+                hasAreaData: !!areaData,
+                hasCuaca: !!areaData?.cuaca,
+                areaDataKeys: areaData ? Object.keys(areaData) : []
+            });
+            throw new Error('BMKG Weather API returned data without cuaca array');
+        }
 
-        const weatherData = weatherResponse.data.data;
+        console.log('[WEATHER] Area data found:', !!areaData);
+        console.log('[WEATHER] Cuaca array exists:', !!areaData.cuaca);
+        console.log('[WEATHER] Cuaca array length:', Array.isArray(areaData.cuaca) ? areaData.cuaca.length : 0);
+
+        const cuaca = Array.isArray(areaData.cuaca) ? areaData.cuaca : [];
+
+        const mapWeatherEntry = (entry) => ({
+            datetime: entry?.local_datetime || entry?.datetime || null,
+            temperature: entry?.t ?? null,
+            humidity: entry?.hu ?? null,
+            precipitation: entry?.tp ?? null,
+            weather_code: entry?.weather ?? null,
+            weather_desc: entry?.weather_desc ?? null,
+            weather_desc_en: entry?.weather_desc_en ?? null,
+            wind_speed: entry?.ws ?? null,
+            wind_dir: entry?.wd ?? null,
+            wind_dir_to: entry?.wd_to ?? null,
+            wind_deg: entry?.wd_deg ?? null,
+            cloud_cover: entry?.tcc ?? null,
+            visibility: entry?.vs_text ?? entry?.vs ?? null,
+            analysis_date: entry?.analysis_date ?? null,
+            icon: entry?.image ?? null,
+        });
+
+        const currentSlot = cuaca.length > 0 && Array.isArray(cuaca[0]) && cuaca[0].length > 0
+            ? mapWeatherEntry(cuaca[0][0])
+            : null;
+
+        const forecastSlots = cuaca
+            .map((slot) => (Array.isArray(slot) && slot.length > 0 ? mapWeatherEntry(slot[0]) : null))
+            .filter((item) => item !== null);
+
+        const payload = {
+            location: {
+                provinsi: lokasiRoot?.provinsi || null,
+                kotkab: lokasiRoot?.kotkab || null,
+                kecamatan: lokasiRoot?.kecamatan || null,
+                desa: lokasiRoot?.desa || null,
+                lon: lokasiRoot?.lon ?? null,
+                lat: lokasiRoot?.lat ?? null,
+                timezone: lokasiRoot?.timezone || null,
+            },
+            current: currentSlot,
+            forecast: forecastSlots,
+            source: 'BMKG',
+        };
 
         // Cache the result
         weatherCache[cacheKey] = {
-            data: weatherData,
+            data: payload,
             timestamp: Date.now()
         };
 
         res.json({
             success: true,
             message: 'Weather data retrieved',
-            data: weatherData,
+            data: payload,
             cached: false
         });
     } catch (error) {
-        console.error('Get weather error:', error);
+        console.error('[WEATHER] Get weather error:', error.message);
+        console.error('[WEATHER] Error stack:', error.stack);
+        if (error.response) {
+            console.error('[WEATHER] Error response data:', error.response.data);
+        }
         res.status(500).json({
             success: false,
-            message: 'Failed to get weather data',
+            message: `Failed to get weather data: ${error.message}`,
             data: null
         });
     }
@@ -104,15 +180,13 @@ router.get('/location/:lat/:lon', async (req, res) => {
     }
 });
 
-// Get All Provinces
+// Get All Provinces - gunakan hardcoded list
 router.get('/provinces/list', async (req, res) => {
     try {
-        const response = await axios.get('https://api.bmkg.go.id/publik/provinsi');
-
-        const provinces = response.data.data.map(p => ({
-            id: p.id,
-            name: p.nama
-        }));
+        console.log('[WEATHER] Returning simplified provinces list');
+        const provinces = [
+            { id: '31', name: 'DKI Jakarta' },
+        ];
 
         res.json({
             success: true,
@@ -120,10 +194,10 @@ router.get('/provinces/list', async (req, res) => {
             data: provinces
         });
     } catch (error) {
-        console.error('Get provinces error:', error);
+        console.error('[WEATHER] Get provinces error:', error.message);
         res.status(500).json({
             success: false,
-            message: 'Failed to get provinces',
+            message: `Failed to get provinces: ${error.message}`,
             data: null
         });
     }

@@ -272,10 +272,37 @@ Status: approved
 API publik dari Badan Meteorologi Klimatologi dan Geofisika Indonesia:
 - Base URL: `https://api.bmkg.go.id/publik`
 - Endpoints:
-  - `/provinsi` - List provinsi
-  - `/prakiraan-cuaca?adm4=:id` - Prakiraan cuaca
+  - `/prakiraan-cuaca?adm4=:id` - Prakiraan cuaca berdasarkan ADM4
   - `/prakiraan-cuaca?lon=:lon&lat=:lat` - Cuaca berdasarkan koordinat
 - Tidak memerlukan API Key
+
+### ⚠️ IMPORTANT: Keterbatasan Akses API BMKG
+
+**Keterbatasan yang Ditemukan:**
+- Endpoint `/publik/provinsi` untuk mendapatkan list provinsi **tidak tersedia** (mengembalikan 404)
+- Saat ini aplikasi hanya dapat mengakses data cuaca untuk **ADM4: `31.71.01.1001`** (Gambir, Jakarta Pusat, DKI Jakarta)
+- Semua request cuaca akan menggunakan ADM4 default ini terlepas dari provinsi yang dipilih di frontend
+
+**Solusi Sementara:**
+- Menggunakan hardcoded list provinsi untuk dropdown
+- Semua request cuaca mengarah ke lokasi default: **DKI Jakarta (Gambir)**
+- Data cuaca yang ditampilkan adalah untuk lokasi tersebut
+
+**Untuk Menggunakan Lokasi Lain:**
+Jika ingin menggunakan ADM4 untuk lokasi lain, perlu:
+1. Mengetahui ADM4 code untuk lokasi yang diinginkan
+2. Update `DEFAULT_ADM4` constant di `agri_link_backend/routes/weather.js`
+3. Atau implementasikan mapping provinsi → ADM4 yang lebih lengkap
+
+**Contoh ADM4 Format:**
+- Format: `{adm1}.{adm2}.{adm3}.{adm4}`
+- Contoh: `31.71.01.1001` = DKI Jakarta → Jakarta Pusat → Gambir → Gambir
+- ADM4 adalah kode desa/kelurahan di Indonesia
+
+**Catatan:**
+- API BMKG adalah API publik dan gratis
+- Tidak ada dokumentasi resmi yang lengkap tentang endpoint provinsi
+- Untuk production, pertimbangkan menggunakan API cuaca alternatif atau implementasi mapping ADM4 yang lebih lengkap
 
 ## Features Implementasi
 
@@ -314,6 +341,8 @@ API publik dari Badan Meteorologi Klimatologi dan Geofisika Indonesia:
 - Periksa koneksi internet
 - BMKG API sometimes down, coba lagi nanti
 - Gunakan cached data jika tersedia
+- **PENTING:** Saat ini hanya bisa mengakses ADM4 `31.71.01.1001` (DKI Jakarta)
+- Jika perlu lokasi lain, update `DEFAULT_ADM4` di `routes/weather.js`
 
 ## Deployment
 
