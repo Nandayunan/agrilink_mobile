@@ -103,6 +103,63 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> fetchSupplierOrders({String? status}) async {
+    _isLoading = true;
+    _error = '';
+    notifyListeners();
+
+    try {
+      final response = await ApiService.getSupplierOrders(status: status);
+      if (response['success'] == true) {
+        final orderList = (response['data']['orders'] as List)
+            .map((o) => Order.fromJson(o))
+            .toList();
+        _orders = orderList;
+        _error = '';
+      } else {
+        _error = response['message'] ?? 'Failed to fetch orders';
+      }
+    } catch (e) {
+      _error = 'Error: $e';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<bool> updateOrderStatus({
+    required int orderId,
+    required String status,
+  }) async {
+    _isLoading = true;
+    _error = '';
+    notifyListeners();
+
+    try {
+      final response = await ApiService.updateOrderStatus(
+        orderId: orderId,
+        status: status,
+      );
+
+      if (response['success'] == true) {
+        await fetchOrders();
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = response['message'] ?? 'Failed to update order';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'Error: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   void clearError() {
     _error = '';
     notifyListeners();

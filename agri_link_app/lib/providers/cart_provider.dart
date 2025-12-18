@@ -129,6 +129,26 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> clearCartBySupplier(int supplierId) async {
+    try {
+      final response = await ApiService.clearCartBySupplier(supplierId);
+      if (response['success'] == true) {
+        // Remove items for this supplier from local list
+        _cartItems.removeWhere((item) => item.adminId == supplierId);
+        notifyListeners();
+        return true;
+      } else {
+        _error = response['message'] ?? 'Failed to clear cart';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'Error: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
   void clearError() {
     _error = '';
     notifyListeners();

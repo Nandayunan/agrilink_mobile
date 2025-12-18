@@ -245,4 +245,33 @@ router.delete('/', verifyToken, async (req, res) => {
     }
 });
 
+// Clear Cart by Supplier
+router.delete('/supplier/:supplierId', verifyToken, async (req, res) => {
+    try {
+        const pool = req.app.locals.pool;
+        const { supplierId } = req.params;
+
+        // Delete cart items that belong to products from this supplier
+        await pool.query(
+            `DELETE ci FROM cart_items ci
+       JOIN products p ON ci.product_id = p.id
+       WHERE ci.client_id = ? AND p.admin_id = ?`,
+            [req.user.id, supplierId]
+        );
+
+        res.json({
+            success: true,
+            message: 'Cart cleared for supplier',
+            data: null
+        });
+    } catch (error) {
+        console.error('Clear cart by supplier error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to clear cart',
+            data: null
+        });
+    }
+});
+
 module.exports = router;
