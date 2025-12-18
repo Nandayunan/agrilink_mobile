@@ -16,8 +16,12 @@ class ApiService {
         // Emulator Android: alias ke localhost laptop
         return 'http://10.0.2.2:5000/api';
       } else {
-        // HP fisik: pakai IP Wi‑Fi laptop
-        return 'http://192.168.1.5:5000/api'; // ganti kalau IP laptop berubah
+        // ⚠️ PENTING: HP fisik - pakai IP Wi‑Fi laptop
+        // IP laptop BERUBAH setiap kali pindah network WiFi!
+        // Cara cek IP: Windows: ipconfig | Linux/Mac: ifconfig
+        // Setelah ubah IP, WAJIB rebuild: flutter clean && flutter run
+        // Dokumentasi lengkap: lihat CONFIGURATION.md
+        return 'http://192.168.1.5:5000/api'; // ⚠️ UPDATE IP INI jika timeout/connection error!
       }
     }
 

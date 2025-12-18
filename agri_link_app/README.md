@@ -2,6 +2,21 @@
 
 A new Flutter project.
 
+## ⚠️ PENTING: Konfigurasi IP Address
+
+**Sebelum menjalankan aplikasi, WAJIB membaca dokumentasi konfigurasi IP:**
+
+👉 **[📖 BACA: CONFIGURATION.md](./CONFIGURATION.md)** 👈
+
+IP address laptop **BERUBAH** setiap kali pindah network WiFi. Jika tidak di-update di `lib/services/api_service.dart` (baris 19-20), aplikasi akan **timeout** atau tidak bisa connect ke backend.
+
+**Quick Fix:**
+1. Cek IP laptop: `ipconfig` (Windows) atau `ifconfig` (Linux/Mac)
+2. Update IP di `lib/services/api_service.dart` baris 20
+3. Rebuild: `flutter clean && flutter run`
+
+---
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
