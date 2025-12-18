@@ -48,6 +48,7 @@ class ProductCard extends StatelessWidget {
   final VoidCallback? onAddToCart;
 
   const ProductCard({
+    super.key,
     required this.productId,
     required this.imageUrl,
     required this.productName,
@@ -61,30 +62,27 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: Card(
         elevation: 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image
-            Container(
-              width: double.infinity,
-              height: 150,
-              decoration: BoxDecoration(
+            // ✅ Bagian gambar fleksibel (aman untuk berbagai ukuran grid)
+            Expanded(
+              flex: 7,
+              child: Container(
+                width: double.infinity,
                 color: AppTheme.backgroundColor,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.lg),
-                ),
-              ),
-              child: imageUrl.isEmpty
-                  ? Icon(Icons.image_not_supported, color: AppTheme.textLight)
-                  : ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(AppRadius.lg),
-                      ),
-                      child: Image.network(
+                child: imageUrl.isEmpty
+                    ? Icon(Icons.image_not_supported, color: AppTheme.textLight)
+                    : Image.network(
                         imageUrl,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
@@ -94,51 +92,60 @@ class ProductCard extends StatelessWidget {
                           );
                         },
                       ),
-                    ),
+              ),
             ),
-            // Product Details
+
+            // ✅ Bagian detail fleksibel & anti-overflow
             Expanded(
+              flex: 5,
               child: Padding(
-                padding: const EdgeInsets.all(AppPadding.md),
+                padding: const EdgeInsets.all(AppPadding.sm),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Product Name
                     Text(
                       productName,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        fontSize: 13,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    // Supplier Name
                     Text(
                       supplierName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: AppTheme.textGray),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textGray,
+                      ),
                     ),
                     const Spacer(),
-                    // Price and Stock
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Rp${price.toStringAsFixed(0)}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.primaryColor,
+                                  fontSize: 12,
                                 ),
                               ),
+                              const SizedBox(height: 2),
                               Text(
                                 'per $unit',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: AppTheme.textGray,
@@ -147,13 +154,24 @@ class ProductCard extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (onAddToCart != null)
-                          FloatingActionButton.small(
-                            onPressed: onAddToCart,
-                            backgroundColor: AppTheme.primaryColor,
-                            foregroundColor: AppTheme.white,
-                            child: const Icon(Icons.add),
+                        if (onAddToCart != null) ...[
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: 34,
+                            height: 34,
+                            child: ElevatedButton(
+                              onPressed: onAddToCart,
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                backgroundColor: AppTheme.primaryColor,
+                                foregroundColor: AppTheme.white,
+                                shape: const CircleBorder(),
+                                elevation: 2,
+                              ),
+                              child: const Icon(Icons.add, size: 18),
+                            ),
                           ),
+                        ],
                       ],
                     ),
                   ],

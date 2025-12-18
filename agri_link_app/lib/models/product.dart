@@ -29,26 +29,62 @@ class Product {
     required this.createdAt,
   });
 
+  // ===============================
+  // Helper parser (ANTI ERROR)
+  // ===============================
+
+  static int _toInt(dynamic v) {
+    if (v == null) return 0;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    return int.tryParse(v.toString()) ?? 0;
+  }
+
+  static double _toDouble(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is double) return v;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString()) ?? 0.0;
+  }
+
+  static bool _toBool(dynamic v) {
+    if (v == null) return false;
+    if (v is bool) return v;
+    if (v is num) return v == 1;
+    final s = v.toString().toLowerCase();
+    return s == 'true' || s == '1';
+  }
+
+  static DateTime _toDate(dynamic v) {
+    if (v == null) return DateTime.now();
+    if (v is DateTime) return v;
+    return DateTime.tryParse(v.toString()) ?? DateTime.now();
+  }
+
+  // ===============================
+  // FROM JSON (BACKEND → FLUTTER)
+  // ===============================
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'] ?? 0,
-      adminId: json['admin_id'] ?? 0,
-      category: json['category'] ?? '',
-      name: json['name'] ?? '',
-      description: json['description'] ?? '',
-      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0,
-      stock: json['stock'] ?? 0,
-      unit: json['unit'] ?? '',
-      imageUrl: json['image_url'] ?? '',
-      adminName: json['admin_name'] ?? '',
-      companyName: json['company_name'] ?? '',
-      isAvailable: json['is_available'] ?? true,
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
-          : DateTime.now(),
+      id: _toInt(json['id']),
+      adminId: _toInt(json['admin_id']),
+      category: (json['category'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      description: (json['description'] ?? '').toString(),
+      price: _toDouble(json['price']), // ✅ "15000.00" aman
+      stock: _toInt(json['stock']),
+      unit: (json['unit'] ?? '').toString(),
+      imageUrl: (json['image_url'] ?? '').toString(),
+      adminName: (json['admin_name'] ?? '').toString(),
+      companyName: (json['company_name'] ?? '').toString(),
+      isAvailable: _toBool(json['is_available']), // ✅ 1 / true
+      createdAt: _toDate(json['created_at']),
     );
   }
 
+  // ===============================
+  // TO JSON (FLUTTER → BACKEND)
+  // ===============================
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -62,7 +98,7 @@ class Product {
       'image_url': imageUrl,
       'admin_name': adminName,
       'company_name': companyName,
-      'is_available': isAvailable,
+      'is_available': isAvailable ? 1 : 0,
       'created_at': createdAt.toIso8601String(),
     };
   }

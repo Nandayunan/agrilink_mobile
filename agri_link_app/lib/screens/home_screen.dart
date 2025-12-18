@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // ✅ Hindari setState during build: jalankan setelah frame pertama
+    // ✅ hindari setState / notifyListeners saat build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInitialData();
     });
@@ -54,8 +54,13 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed, // ✅ icon+label selalu tampil
         currentIndex: _selectedTab,
         onTap: (index) => setState(() => _selectedTab = index),
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        selectedFontSize: 12,
+        unselectedFontSize: 12,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
           BottomNavigationBarItem(
@@ -90,8 +95,28 @@ class __HomeTabState extends State<_HomeTab> {
     await context.read<ProductProvider>().fetchProducts();
   }
 
+  // ✅ responsif: 1 card max lebar segini, sisanya auto nambah kolom
+  double _maxCrossAxisExtentForWidth(double width) {
+    if (width >= 1200) return 260;
+    if (width >= 900) return 240;
+    if (width >= 600) return 220;
+    return 200;
+  }
+
+  // ✅ rasio card: sedikit lebih “tinggi” agar teks muat dan tidak overflow
+  double _childAspectRatioForWidth(double width) {
+    if (width >= 1200) return 0.78;
+    if (width >= 900) return 0.75;
+    if (width >= 600) return 0.72;
+    return 0.68;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxExtent = _maxCrossAxisExtentForWidth(screenWidth);
+    final ratio = _childAspectRatioForWidth(screenWidth);
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -149,9 +174,7 @@ class __HomeTabState extends State<_HomeTab> {
                   child: TextField(
                     controller: _searchController,
                     onChanged: (value) async {
-                      // ✅ supaya suffixIcon (X) ikut refresh
-                      setState(() {});
-
+                      setState(() {}); // ✅ refresh suffix icon
                       if (value.isEmpty) {
                         await productProvider.fetchProducts();
                       } else {
@@ -248,10 +271,9 @@ class __HomeTabState extends State<_HomeTab> {
                     child: GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.75,
+                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: maxExtent,
+                        childAspectRatio: ratio,
                         crossAxisSpacing: AppPadding.lg,
                         mainAxisSpacing: AppPadding.lg,
                       ),

@@ -1,9 +1,22 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:5000/api';
+  // ✅ BASE URL otomatis sesuai platform
+  static String get baseUrl {
+    // Flutter Web
+    if (kIsWeb) return 'http://localhost:5000/api';
+
+    // Android Emulator: localhost harus diganti 10.0.2.2
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:5000/api';
+    }
+
+    // iOS Simulator / Desktop (biasanya bisa localhost)
+    return 'http://localhost:5000/api';
+  }
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -15,7 +28,7 @@ class ApiService {
 
     if (withAuth) {
       final token = await getToken();
-      if (token != null) {
+      if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
       }
     }
@@ -23,7 +36,9 @@ class ApiService {
     return headers;
   }
 
-  // Auth Services
+  // =========================
+  // AUTH SERVICES
+  // =========================
   static Future<Map<String, dynamic>> register({
     required String name,
     required String email,
@@ -51,7 +66,6 @@ class ApiService {
           'address': address,
         }),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
@@ -68,7 +82,6 @@ class ApiService {
         headers: await getHeaders(withAuth: false),
         body: jsonEncode({'email': email, 'password': password}),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
@@ -81,14 +94,15 @@ class ApiService {
         Uri.parse('$baseUrl/auth/me'),
         headers: await getHeaders(),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
 
-  // Product Services
+  // =========================
+  // PRODUCT SERVICES
+  // =========================
   static Future<Map<String, dynamic>> getProducts({
     String? category,
     String? search,
@@ -97,15 +111,41 @@ class ApiService {
     int offset = 0,
   }) async {
     try {
-      final params = {'limit': limit.toString(), 'offset': offset.toString()};
+      final params = <String, String>{
+        'limit': limit.toString(),
+        'offset': offset.toString(),
+      };
 
-      if (category != null) params['category'] = category;
-      if (search != null) params['search'] = search;
+      if (category != null && category.isNotEmpty)
+        params['category'] = category;
+      if (search != null && search.isNotEmpty) params['search'] = search;
       if (adminId != null) params['admin_id'] = adminId.toString();
 
-      final uri = Uri.parse(
-        '$baseUrl/products',
-      ).replace(queryParameters: params);
+      final uri =
+          Uri.parse('$baseUrl/products').replace(queryParameters: params);
+
+      // ✅ Debug biar kelihatan requestnya kemana & responnya apa
+      debugPrint('GET PRODUCTS URL: $uri');
+
+      final response = await http.get(
+        uri,
+        headers: await getHeaders(withAuth: false),
+      );
+
+      debugPrint('GET PRODUCTS STATUS: ${response.statusCode}');
+      debugPrint('GET PRODUCTS BODY: ${utf8.decode(response.bodyBytes)}');
+
+      return _handleResponse(response);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getProductById(int productId) async {
+    try {
+      final uri = Uri.parse('$baseUrl/products/$productId');
+      debugPrint('GET PRODUCT DETAIL URL: $uri');
+
       final response = await http.get(
         uri,
         headers: await getHeaders(withAuth: false),
@@ -117,23 +157,13 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> getProductById(int productId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/products/$productId'),
-        headers: await getHeaders(withAuth: false),
-      );
-
-      return _handleResponse(response);
-    } catch (e) {
-      return {'success': false, 'message': 'Network error: $e'};
-    }
-  }
-
   static Future<Map<String, dynamic>> getCategories() async {
     try {
+      final uri = Uri.parse('$baseUrl/products/categories/list');
+      debugPrint('GET CATEGORIES URL: $uri');
+
       final response = await http.get(
-        Uri.parse('$baseUrl/products/categories/list'),
+        uri,
         headers: await getHeaders(withAuth: false),
       );
 
@@ -143,14 +173,15 @@ class ApiService {
     }
   }
 
-  // Cart Services
+  // =========================
+  // CART SERVICES
+  // =========================
   static Future<Map<String, dynamic>> getCart() async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/cart'),
         headers: await getHeaders(),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
@@ -167,7 +198,6 @@ class ApiService {
         headers: await getHeaders(),
         body: jsonEncode({'product_id': productId, 'quantity': quantity}),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
@@ -184,7 +214,6 @@ class ApiService {
         headers: await getHeaders(),
         body: jsonEncode({'quantity': quantity}),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
@@ -197,14 +226,15 @@ class ApiService {
         Uri.parse('$baseUrl/cart/$cartId'),
         headers: await getHeaders(),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
 
-  // Order Services
+  // =========================
+  // ORDER SERVICES
+  // =========================
   static Future<Map<String, dynamic>> createOrder({
     required int adminId,
     required List<Map<String, dynamic>> items,
@@ -230,7 +260,6 @@ class ApiService {
           'notes': notes,
         }),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
@@ -243,13 +272,15 @@ class ApiService {
     int offset = 0,
   }) async {
     try {
-      final params = {'limit': limit.toString(), 'offset': offset.toString()};
-
-      if (status != null) params['status'] = status;
+      final params = <String, String>{
+        'limit': limit.toString(),
+        'offset': offset.toString(),
+      };
+      if (status != null && status.isNotEmpty) params['status'] = status;
 
       final uri = Uri.parse('$baseUrl/orders').replace(queryParameters: params);
-      final response = await http.get(uri, headers: await getHeaders());
 
+      final response = await http.get(uri, headers: await getHeaders());
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
@@ -262,23 +293,22 @@ class ApiService {
         Uri.parse('$baseUrl/orders/$orderId'),
         headers: await getHeaders(),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
 
-  // Weather Services
+  // =========================
+  // WEATHER SERVICES
+  // =========================
   static Future<Map<String, dynamic>> getWeatherByProvince(
-    String province,
-  ) async {
+      String province) async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/weather/province/$province'),
         headers: await getHeaders(withAuth: false),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
@@ -294,7 +324,6 @@ class ApiService {
         Uri.parse('$baseUrl/weather/location/$latitude/$longitude'),
         headers: await getHeaders(withAuth: false),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
@@ -307,30 +336,33 @@ class ApiService {
         Uri.parse('$baseUrl/weather/provinces/list'),
         headers: await getHeaders(withAuth: false),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
 
-  // Users Services
+  // =========================
+  // USERS SERVICES
+  // =========================
   static Future<Map<String, dynamic>> getSuppliers() async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/suppliers/list'),
         headers: await getHeaders(withAuth: false),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
 
+  // =========================
+  // RESPONSE HANDLER
+  // =========================
   static Map<String, dynamic> _handleResponse(http.Response response) {
     try {
-      final body = jsonDecode(response.body);
+      final body = jsonDecode(utf8.decode(response.bodyBytes));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return body;
