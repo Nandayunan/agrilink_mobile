@@ -8,13 +8,48 @@ const weatherCache = {};
 // Default ADM4: Gambir, Jakarta Pusat
 const DEFAULT_ADM4 = '31.71.01.1001';
 
+// Province to ADM4 mapping
+// Format: {province_code: 'adm1.adm2.adm3.adm4'}
+// Note: ADM4 codes for provinces 32, 34, 35, 36 need to be updated with actual codes
+const PROVINCE_ADM4_MAPPING = {
+    '31': '31.71.01.1001', // DKI Jakarta - Gambir, Jakarta Pusat
+    '32': '32.71.01.1001', // Jawa Barat - [TO BE UPDATED with actual ADM4 code]
+    '34': '34.71.01.1001', // DI Yogyakarta - [TO BE UPDATED with actual ADM4 code]
+    '35': '35.71.01.1001', // Jawa Timur - [TO BE UPDATED with actual ADM4 code]
+    '36': '36.71.01.1001', // Banten - [TO BE UPDATED with actual ADM4 code]
+};
+
+/**
+ * Get ADM4 code by province ID or name
+ * @param {string|number} province - Province ID (e.g., '31') or name (e.g., 'DKI Jakarta')
+ * @returns {string} ADM4 code or DEFAULT_ADM4 if not found
+ */
+function getAdm4ByProvince(province) {
+    // Convert to string and trim
+    const provinceStr = String(province).trim();
+    
+    // If it's already a province code (2 digits), use it directly
+    if (PROVINCE_ADM4_MAPPING[provinceStr]) {
+        return PROVINCE_ADM4_MAPPING[provinceStr];
+    }
+    
+    // Try to extract province ID from name or other formats
+    // If province parameter is a name, we need to map it to ID
+    // For now, fallback to default
+    console.log(`[WEATHER] Province "${provinceStr}" not found in mapping, using DEFAULT_ADM4`);
+    return DEFAULT_ADM4;
+}
+
 // Get Weather by Province
 router.get('/province/:province', async (req, res) => {
     try {
         const { province } = req.params;
 
-        // Check cache
-        const cacheKey = `weather_${province}`;
+        // Get ADM4 code based on province
+        const adm4Code = getAdm4ByProvince(province);
+
+        // Check cache - use ADM4 code in cache key to differentiate locations
+        const cacheKey = `weather_${province}_${adm4Code}`;
         if (weatherCache[cacheKey] && Date.now() - weatherCache[cacheKey].timestamp < 3600000) {
             return res.json({
                 success: true,
@@ -24,10 +59,10 @@ router.get('/province/:province', async (req, res) => {
             });
         }
 
-        // Use BMKG API directly with default ADM4
-        console.log('[WEATHER] Fetching weather for ADM4:', DEFAULT_ADM4);
+        // Use BMKG API directly with ADM4 from mapping
+        console.log('[WEATHER] Fetching weather for province:', province, 'ADM4:', adm4Code);
         
-        const weatherUrl = `https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=${DEFAULT_ADM4}`;
+        const weatherUrl = `https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=${adm4Code}`;
         console.log('[WEATHER] Weather URL:', weatherUrl);
         
         const weatherResponse = await axios.get(weatherUrl, {
@@ -186,6 +221,10 @@ router.get('/provinces/list', async (req, res) => {
         console.log('[WEATHER] Returning simplified provinces list');
         const provinces = [
             { id: '31', name: 'DKI Jakarta' },
+            { id: '32', name: 'Jawa Barat' },
+            { id: '34', name: 'DI Yogyakarta' },
+            { id: '35', name: 'Jawa Timur' },
+            { id: '36', name: 'Banten' },
         ];
 
         res.json({
