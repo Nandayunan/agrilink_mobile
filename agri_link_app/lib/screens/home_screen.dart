@@ -3,13 +3,14 @@ import 'package:provider/provider.dart';
 
 import '../providers/product_provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/auth_provider.dart';
 import '../utils/app_theme.dart';
-import '../utils/helpers.dart';
 import '../widgets/custom_widgets.dart';
 
 import 'product_detail_screen.dart';
 import 'cart_screen.dart';
 import 'orders_screen.dart';
+import 'order_approval_screen.dart';
 import 'weather_screen.dart';
 import 'profile_screen.dart';
 
@@ -43,34 +44,71 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _selectedTab,
-        children: const [
-          _HomeTab(),
-          _OrdersTab(),
-          _WeatherTab(),
-          _ProfileTab(),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // ✅ icon+label selalu tampil
-        currentIndex: _selectedTab,
-        onTap: (index) => setState(() => _selectedTab = index),
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag),
-            label: 'Pesanan',
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, _) {
+        final isAdmin = authProvider.currentUser?.role == 'admin';
+        final tabs = isAdmin
+            ? const [
+                _OrderApprovalTab(),
+                _WeatherTab(),
+                _ProfileTab(),
+              ]
+            : const [
+                _HomeTab(),
+                _OrdersTab(),
+                _WeatherTab(),
+                _ProfileTab(),
+              ];
+        
+        return Scaffold(
+          body: IndexedStack(
+            index: _selectedTab,
+            children: tabs,
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Cuaca'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
-        ],
-      ),
+          bottomNavigationBar: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            currentIndex: _selectedTab,
+            onTap: (index) => setState(() => _selectedTab = index),
+            showSelectedLabels: true,
+            showUnselectedLabels: true,
+            selectedFontSize: 12,
+            unselectedFontSize: 12,
+            items: isAdmin
+                ? const [
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.assignment),
+                      label: 'Pesanan',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.cloud),
+                      label: 'Cuaca',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.person),
+                      label: 'Profil',
+                    ),
+                  ]
+                : const [
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.home),
+                      label: 'Beranda',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.shopping_bag),
+                      label: 'Pesanan',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.cloud),
+                      label: 'Cuaca',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.person),
+                      label: 'Profil',
+                    ),
+                  ],
+          ),
+        );
+      },
     );
   }
 }
@@ -408,6 +446,15 @@ class _OrdersTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const OrdersScreen();
+  }
+}
+
+class _OrderApprovalTab extends StatelessWidget {
+  const _OrderApprovalTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const OrderApprovalScreen();
   }
 }
 

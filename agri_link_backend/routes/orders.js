@@ -144,6 +144,14 @@ router.post('/', verifyToken, verifyClientRole, async (req, res) => {
             notes
         } = req.body;
 
+        console.log('Create order request:', {
+            admin_id,
+            items,
+            delivery_address,
+            delivery_date,
+            client_id: req.user.id
+        });
+
         if (!items || items.length === 0 || !admin_id) {
             return res.status(400).json({
                 success: false,
@@ -156,7 +164,7 @@ router.post('/', verifyToken, verifyClientRole, async (req, res) => {
         let subtotal = 0;
         const productIds = items.map(item => item.product_id);
         const [products] = await pool.query(
-            `SELECT id, price, stock FROM products WHERE id IN (${productIds.join(',')}})`
+            `SELECT id, price, stock FROM products WHERE id IN (${productIds.join(',')})`
         );
 
         const productMap = {};
@@ -241,7 +249,7 @@ router.post('/', verifyToken, verifyClientRole, async (req, res) => {
         console.error('Create order error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to create order',
+            message: `Failed to create order: ${error.message}`,
             data: null
         });
     }
@@ -303,6 +311,125 @@ router.put('/:orderId', verifyToken, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to update order',
+            data: null
+        });
+    }
+});
+
+// Get Orders for Supplier (Admin)
+router.get('/supplier/list', verifyToken, async (req, res) => {
+    try {
+        const pool = req.app.locals.pool;
+        const { status, limit = 50, offset = 0 } = req.query;
+
+        let query = `SELECT o.*, u.name as client_name, u.phone as client_phone, u.address as client_address FROM orders o 
+                    LEFT JOIN users u ON o.client_id = u.id 
+                    WHERE o.admin_id = ?`;
+        let params = [req.user.id];
+
+        if (status) {
+            query += ' AND o.status = ?';
+            params.push(status);
+        }
+
+        query += ' ORDER BY o.created_at DESC LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), parseInt(offset));
+
+        const [orders] = await pool.query(query, params);
+
+        // Get total count
+        let countQuery = 'SELECT COUNT(*) as total FROM orders WHERE admin_id = ?';
+        let countParams = [req.user.id];
+
+        if (status) {
+            countQuery += ' AND status = ?';
+            countParams.push(status);
+        }
+
+        const [countResult] = await pool.query(countQuery, countParams);
+
+        // Get order items for each order
+        for (const order of orders) {
+            const [items] = await pool.query(
+                `SELECT oi.*, p.name, p.image_url, p.unit FROM order_items oi 
+                 JOIN products p ON oi.product_id = p.id 
+                 WHERE oi.order_id = ?`,
+                [order.id]
+            );
+            order.items = items;
+        }
+
+        res.json({
+            success: true,
+            message: 'Supplier orders retrieved',
+            data: {
+                orders,
+                total: countResult[0].total,
+                limit,
+                offset
+            }
+        });
+    } catch (error) {
+        console.error('Get supplier orders error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get orders',
+            data: null
+        });
+    }
+});
+
+// Update Order Status
+router.put('/:orderId/status', verifyToken, async (req, res) => {
+    try {
+        const pool = req.app.locals.pool;
+        const { orderId } = req.params;
+        const { status } = req.body;
+
+        if (!status) {
+            return res.status(400).json({
+                success: false,
+                message: 'Status is required',
+                data: null
+            });
+        }
+
+        const [orders] = await pool.query('SELECT * FROM orders WHERE id = ?', [orderId]);
+
+        if (orders.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found',
+                data: null
+            });
+        }
+
+        const order = orders[0];
+
+        // Check authorization - only supplier (admin) can update their orders
+        if (req.user.id !== order.admin_id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Unauthorized to update this order',
+                data: null
+            });
+        }
+
+        await pool.query(
+            'UPDATE orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+            [status, orderId]
+        );
+
+        res.json({
+            success: true,
+            message: 'Order status updated successfully',
+            data: { id: orderId, status }
+        });
+    } catch (error) {
+        console.error('Update order status error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update order status',
             data: null
         });
     }

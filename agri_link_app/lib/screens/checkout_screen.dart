@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/order_provider.dart';
+import '../providers/cart_provider.dart';
 import '../utils/app_theme.dart';
 import '../utils/helpers.dart';
 import '../widgets/custom_widgets.dart';
@@ -10,7 +11,7 @@ class CheckoutScreen extends StatefulWidget {
   final int supplierId;
   final List<dynamic> items;
 
-  const CheckoutScreen({required this.supplierId, required this.items});
+  const CheckoutScreen({super.key, required this.supplierId, required this.items});
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -70,6 +71,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     try {
       final orderProvider = context.read<OrderProvider>();
+      final cartProvider = context.read<CartProvider>();
       final items = widget.items
           .map(
             (item) => {'product_id': item.productId, 'quantity': item.quantity},
@@ -91,6 +93,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         setState(() => _isSubmitting = false);
 
         if (success) {
+          // Clear cart items for this supplier
+          await cartProvider.clearCartBySupplier(widget.supplierId);
+          
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Pesanan berhasil dibuat!')),
           );
@@ -114,7 +119,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'Checkout'),
+      appBar: const CustomAppBar(title: 'Checkout'),
       backgroundColor: AppTheme.backgroundColor,
       body: SingleChildScrollView(
         child: Padding(
@@ -155,7 +160,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       Text(item.productName),
                                       Text(
                                         '${item.quantity} x Rp${item.price.toStringAsFixed(0)}',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 12,
                                           color: AppTheme.textGray,
                                         ),

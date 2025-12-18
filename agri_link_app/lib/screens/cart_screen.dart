@@ -28,7 +28,7 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'Keranjang Belanja'),
+      appBar: const CustomAppBar(title: 'Keranjang Belanja'),
       backgroundColor: AppTheme.backgroundColor,
       body: Consumer<CartProvider>(
         builder: (context, cartProvider, _) {
@@ -92,7 +92,7 @@ class _CartScreenState extends State<CartScreen> {
                                     ),
                                     Text(
                                       supplier.adminName,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 12,
                                         color: AppTheme.textGray,
                                       ),
@@ -176,14 +176,14 @@ class _CartScreenState extends State<CartScreen> {
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: item.imageUrl.isEmpty
-                ? Icon(Icons.image_not_supported, color: AppTheme.textLight)
+                ? const Icon(Icons.image_not_supported, color: AppTheme.textLight)
                 : ClipRRect(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     child: Image.network(
                       item.imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        return Icon(
+                        return const Icon(
                           Icons.image_not_supported,
                           color: AppTheme.textLight,
                         );
@@ -209,7 +209,7 @@ class _CartScreenState extends State<CartScreen> {
                 const SizedBox(height: AppPadding.sm),
                 Text(
                   'Rp${item.price.toStringAsFixed(0)} per ${item.unit}',
-                  style: TextStyle(fontSize: 12, color: AppTheme.textGray),
+                  style: const TextStyle(fontSize: 12, color: AppTheme.textGray),
                 ),
                 const SizedBox(height: AppPadding.md),
                 // Quantity Controls

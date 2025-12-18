@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: AppPadding.sm),
-                          Text(
+                          const Text(
                             'Masuk untuk melanjutkan',
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -112,10 +112,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextFormField(
                             controller: _emailController,
                             validator: AppValidator.validateEmail,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'Email',
                               hintText: 'contoh@email.com',
-                              prefixIcon: const Icon(Icons.email),
+                              prefixIcon: Icon(Icons.email),
                             ),
                             keyboardType: TextInputType.emailAddress,
                           ),
@@ -178,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           'Belum punya akun? ',
                           style: TextStyle(
                             color: AppTheme.textGray,

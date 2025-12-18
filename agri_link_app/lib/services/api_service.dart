@@ -137,8 +137,9 @@ class ApiService {
         'offset': offset.toString(),
       };
 
-      if (category != null && category.isNotEmpty)
+      if (category != null && category.isNotEmpty) {
         params['category'] = category;
+      }
       if (search != null && search.isNotEmpty) params['search'] = search;
       if (adminId != null) params['admin_id'] = adminId.toString();
 
@@ -253,6 +254,18 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> clearCartBySupplier(int supplierId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/cart/supplier/$supplierId'),
+        headers: await getHeaders(),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
   // =========================
   // ORDER SERVICES
   // =========================
@@ -313,6 +326,35 @@ class ApiService {
       final response = await http.get(
         Uri.parse('$baseUrl/orders/$orderId'),
         headers: await getHeaders(),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getSupplierOrders({String? status}) async {
+    try {
+      final params = <String, String>{};
+      if (status != null && status.isNotEmpty) params['status'] = status;
+
+      final uri = Uri.parse('$baseUrl/orders/supplier/list').replace(queryParameters: params);
+      final response = await http.get(uri, headers: await getHeaders());
+      return _handleResponse(response);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateOrderStatus({
+    required int orderId,
+    required String status,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/orders/$orderId/status'),
+        headers: await getHeaders(),
+        body: jsonEncode({'status': status}),
       );
       return _handleResponse(response);
     } catch (e) {
