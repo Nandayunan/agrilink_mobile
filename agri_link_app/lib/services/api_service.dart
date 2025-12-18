@@ -395,12 +395,21 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getProvinces() async {
     try {
+      final uri = Uri.parse('$baseUrl/weather/provinces/list');
+      debugPrint('[WEATHER] GET PROVINCES URL: $uri');
+      debugPrint('[WEATHER] Base URL: $baseUrl');
+      
       final response = await http.get(
-        Uri.parse('$baseUrl/weather/provinces/list'),
+        uri,
         headers: await getHeaders(withAuth: false),
       );
+      
+      debugPrint('[WEATHER] GET PROVINCES STATUS: ${response.statusCode}');
+      debugPrint('[WEATHER] GET PROVINCES BODY: ${utf8.decode(response.bodyBytes)}');
+      
       return _handleResponse(response);
     } catch (e) {
+      debugPrint('[WEATHER] GET PROVINCES ERROR: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }

@@ -13,20 +13,25 @@ class WeatherProvider extends ChangeNotifier {
   String get error => _error;
 
   Future<void> fetchWeatherByProvince(String province) async {
+    debugPrint('[WEATHER_PROVIDER] fetchWeatherByProvince() called with: $province');
     _isLoading = true;
     _error = '';
     notifyListeners();
 
     try {
       final response = await ApiService.getWeatherByProvince(province);
+      debugPrint('[WEATHER_PROVIDER] fetchWeatherByProvince response: $response');
       if (response['success'] == true) {
         _weatherData = response['data'];
         _error = '';
+        debugPrint('[WEATHER_PROVIDER] Weather data loaded');
       } else {
         _error = response['message'] ?? 'Failed to fetch weather';
+        debugPrint('[WEATHER_PROVIDER] fetchWeatherByProvince error: $_error');
       }
     } catch (e) {
       _error = 'Error: $e';
+      debugPrint('[WEATHER_PROVIDER] fetchWeatherByProvince exception: $e');
     }
 
     _isLoading = false;
@@ -61,18 +66,27 @@ class WeatherProvider extends ChangeNotifier {
   }
 
   Future<void> fetchProvinces() async {
+    debugPrint('[WEATHER_PROVIDER] fetchProvinces() called');
     try {
       final response = await ApiService.getProvinces();
+      debugPrint('[WEATHER_PROVIDER] fetchProvinces response: $response');
       if (response['success'] == true) {
         _provinces = List<Map<String, dynamic>>.from(
           (response['data'] as List).map(
             (p) => {'id': p['id'], 'name': p['name']},
           ),
         );
-        notifyListeners();
+        debugPrint('[WEATHER_PROVIDER] Provinces loaded: ${_provinces.length}');
+        _error = '';
+      } else {
+        _error = response['message'] ?? 'Failed to fetch provinces';
+        debugPrint('[WEATHER_PROVIDER] fetchProvinces error: $_error');
       }
+      notifyListeners();
     } catch (e) {
       _error = 'Error: $e';
+      debugPrint('[WEATHER_PROVIDER] fetchProvinces exception: $e');
+      notifyListeners();
     }
   }
 
