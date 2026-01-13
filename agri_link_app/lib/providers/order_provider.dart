@@ -16,7 +16,9 @@ class OrderProvider extends ChangeNotifier {
   Future<void> fetchOrders({String? status}) async {
     _isLoading = true;
     _error = '';
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     try {
       final response = await ApiService.getOrders(status: status);
@@ -34,7 +36,9 @@ class OrderProvider extends ChangeNotifier {
     }
 
     _isLoading = false;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   Future<bool> createOrder({
