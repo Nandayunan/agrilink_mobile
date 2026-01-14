@@ -193,6 +193,39 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `phone`, `address`, `cit
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `restaurant_farmers`
+--
+
+CREATE TABLE `restaurant_farmers` (
+  `id` int(11) NOT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `farmer_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `messages`
+--
+
+CREATE TABLE `messages` (
+  `id` int(11) NOT NULL,
+  `sender_id` int(11) NOT NULL,
+  `recipient_id` int(11) NOT NULL,
+  `sender_type` enum('restaurant','farmer','supplier') NOT NULL,
+  `recipient_type` enum('restaurant','farmer','supplier') NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `content` longtext NOT NULL,
+  `message_type` enum('inquiry','offer','update','order_related') NOT NULL DEFAULT 'inquiry',
+  `is_read` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `weather_cache`
 --
 
@@ -270,6 +303,25 @@ ALTER TABLE `product_reviews`
   ADD KEY `idx_client_id` (`client_id`);
 
 --
+-- Indeks untuk tabel `restaurant_farmers`
+--
+ALTER TABLE `restaurant_farmers`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_restaurant_id` (`restaurant_id`),
+  ADD KEY `idx_farmer_id` (`farmer_id`),
+  ADD UNIQUE KEY `unique_restaurant_farmer` (`restaurant_id`,`farmer_id`);
+
+--
+-- Indeks untuk tabel `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_sender_id` (`sender_id`),
+  ADD KEY `idx_recipient_id` (`recipient_id`),
+  ADD KEY `idx_is_read` (`is_read`),
+  ADD KEY `idx_created_at` (`created_at`);
+
+--
 -- Indeks untuk tabel `users`
 --
 ALTER TABLE `users`
@@ -329,6 +381,18 @@ ALTER TABLE `product_reviews`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT untuk tabel `restaurant_farmers`
+--
+ALTER TABLE `restaurant_farmers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT untuk tabel `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
@@ -384,6 +448,20 @@ ALTER TABLE `products`
 ALTER TABLE `product_reviews`
   ADD CONSTRAINT `product_reviews_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `product_reviews_ibfk_2` FOREIGN KEY (`client_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `restaurant_farmers`
+--
+ALTER TABLE `restaurant_farmers`
+  ADD CONSTRAINT `restaurant_farmers_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `restaurant_farmers_ibfk_2` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `messages`
+--
+ALTER TABLE `messages`
+  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`recipient_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

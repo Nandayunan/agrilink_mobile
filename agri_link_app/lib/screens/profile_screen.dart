@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/app_theme.dart';
 import '../widgets/custom_widgets.dart';
-import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -11,7 +10,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'Profil Saya', showBackButton: false),
+      appBar: const CustomAppBar(title: 'Profil Saya', showBackButton: false),
       backgroundColor: AppTheme.backgroundColor,
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
@@ -62,7 +61,7 @@ class ProfileScreen extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           user.email,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppTheme.textGray,
                             fontSize: 14,
                           ),
@@ -173,7 +172,7 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: TextStyle(fontSize: 12, color: AppTheme.textGray),
+                      style: const TextStyle(fontSize: 12, color: AppTheme.textGray),
                     ),
                     const SizedBox(height: 4),
                     Text(

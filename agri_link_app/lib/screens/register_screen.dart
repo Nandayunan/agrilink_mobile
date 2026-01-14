@@ -4,7 +4,6 @@ import '../providers/auth_provider.dart';
 import '../utils/app_theme.dart';
 import '../utils/helpers.dart';
 import '../widgets/custom_widgets.dart';
-import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -139,10 +138,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _nameController,
                       validator: AppValidator.validateName,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Nama Lengkap',
                         hintText: 'Masukkan nama lengkap',
-                        prefixIcon: const Icon(Icons.person),
+                        prefixIcon: Icon(Icons.person),
                       ),
                     ),
                     const SizedBox(height: AppPadding.lg),
@@ -150,10 +149,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _emailController,
                       validator: AppValidator.validateEmail,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Email',
                         hintText: 'contoh@email.com',
-                        prefixIcon: const Icon(Icons.email),
+                        prefixIcon: Icon(Icons.email),
                       ),
                       keyboardType: TextInputType.emailAddress,
                     ),
@@ -186,10 +185,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _phoneController,
                       validator: AppValidator.validatePhone,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Nomor Telepon',
                         hintText: '08xxxxxxxxxx',
-                        prefixIcon: const Icon(Icons.phone),
+                        prefixIcon: Icon(Icons.phone),
                       ),
                       keyboardType: TextInputType.phone,
                     ),
@@ -209,20 +208,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     // City Field
                     TextFormField(
                       controller: _cityController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Kota',
                         hintText: 'Masukkan kota',
-                        prefixIcon: const Icon(Icons.location_city),
+                        prefixIcon: Icon(Icons.location_city),
                       ),
                     ),
                     const SizedBox(height: AppPadding.lg),
                     // Province Field
                     TextFormField(
                       controller: _provinceController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Provinsi',
                         hintText: 'Masukkan provinsi',
-                        prefixIcon: const Icon(Icons.map),
+                        prefixIcon: Icon(Icons.map),
                       ),
                     ),
                     const SizedBox(height: AppPadding.lg),
@@ -230,10 +229,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _addressController,
                       validator: AppValidator.validateAddress,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Alamat Lengkap',
                         hintText: 'Masukkan alamat lengkap',
-                        prefixIcon: const Icon(Icons.home),
+                        prefixIcon: Icon(Icons.home),
                       ),
                       maxLines: 3,
                     ),
@@ -267,7 +266,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           'Sudah punya akun? ',
                           style: TextStyle(
                             color: AppTheme.textGray,

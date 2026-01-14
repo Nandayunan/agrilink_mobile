@@ -13,6 +13,8 @@ import 'orders_screen.dart';
 import 'order_approval_screen.dart';
 import 'weather_screen.dart';
 import 'profile_screen.dart';
+import 'restaurant_dashboard_screen.dart';
+import 'farmer_products_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -49,12 +51,14 @@ class _HomeScreenState extends State<HomeScreen> {
         final isAdmin = authProvider.currentUser?.role == 'admin';
         final tabs = isAdmin
             ? const [
+                _FarmerProductsTab(),
                 _OrderApprovalTab(),
                 _WeatherTab(),
                 _ProfileTab(),
               ]
             : const [
                 _HomeTab(),
+                _RestaurantDashboardTab(),
                 _OrdersTab(),
                 _WeatherTab(),
                 _ProfileTab(),
@@ -76,6 +80,10 @@ class _HomeScreenState extends State<HomeScreen> {
             items: isAdmin
                 ? const [
                     BottomNavigationBarItem(
+                      icon: Icon(Icons.inventory_2),
+                      label: 'Produk',
+                    ),
+                    BottomNavigationBarItem(
                       icon: Icon(Icons.assignment),
                       label: 'Pesanan',
                     ),
@@ -92,6 +100,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     BottomNavigationBarItem(
                       icon: Icon(Icons.home),
                       label: 'Beranda',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.mail),
+                      label: 'Pesan',
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.shopping_bag),
@@ -458,6 +470,15 @@ class _OrderApprovalTab extends StatelessWidget {
   }
 }
 
+class _FarmerProductsTab extends StatelessWidget {
+  const _FarmerProductsTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const FarmerProductsScreen();
+  }
+}
+
 class _WeatherTab extends StatelessWidget {
   const _WeatherTab();
 
@@ -473,5 +494,14 @@ class _ProfileTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const ProfileScreen();
+  }
+}
+
+class _RestaurantDashboardTab extends StatelessWidget {
+  const _RestaurantDashboardTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const RestaurantDashboardScreen();
   }
 }

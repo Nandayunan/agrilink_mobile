@@ -430,6 +430,80 @@ class ApiService {
   }
 
   // =========================
+  // PRODUCT CRUD FOR FARMERS
+  // =========================
+  
+  /// Create new product
+  static Future<Map<String, dynamic>> createProduct({
+    required String name,
+    required String description,
+    required double price,
+    required int stock,
+    required String unit,
+    required String category,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/products'),
+        headers: await getHeaders(withAuth: true),
+        body: jsonEncode({
+          'name': name,
+          'description': description,
+          'price': price,
+          'stock': stock,
+          'unit': unit,
+          'category': category,
+        }),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  /// Update existing product
+  static Future<Map<String, dynamic>> updateProduct({
+    required int productId,
+    required String name,
+    required String description,
+    required double price,
+    required int stock,
+    required String unit,
+    required String category,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/products/$productId'),
+        headers: await getHeaders(withAuth: true),
+        body: jsonEncode({
+          'name': name,
+          'description': description,
+          'price': price,
+          'stock': stock,
+          'unit': unit,
+          'category': category,
+        }),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  /// Delete product
+  static Future<Map<String, dynamic>> deleteProduct(int productId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/products/$productId'),
+        headers: await getHeaders(withAuth: true),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  // =========================
   // RESPONSE HANDLER
   // =========================
   static Map<String, dynamic> _handleResponse(http.Response response) {
