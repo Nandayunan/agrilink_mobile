@@ -15,6 +15,7 @@ import 'weather_screen.dart';
 import 'profile_screen.dart';
 import 'restaurant_dashboard_screen.dart';
 import 'farmer_products_screen.dart';
+import 'about_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -171,6 +172,15 @@ class __HomeTabState extends State<_HomeTab> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: AppTheme.white,
+        leading: IconButton(
+          icon: const Icon(Icons.info_outline, color: Colors.black87),
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AboutScreen()),
+            );
+          },
+          tooltip: 'Tentang Aplikasi',
+        ),
         title: const Text('Agri-Link'),
         actions: [
           Consumer<CartProvider>(
