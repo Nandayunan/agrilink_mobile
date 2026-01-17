@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
+import 'dart:io';
 
 class ProductProvider extends ChangeNotifier {
   List<Product> _products = [];
@@ -138,6 +139,7 @@ class ProductProvider extends ChangeNotifier {
     required int stock,
     required String unit,
     required String category,
+    File? imageFile,
   }) async {
     _isLoading = true;
     _error = '';
@@ -151,6 +153,7 @@ class ProductProvider extends ChangeNotifier {
         stock: stock,
         unit: unit,
         category: category,
+        imageFile: imageFile,
       );
 
       if (response['success'] == true) {
@@ -184,6 +187,7 @@ class ProductProvider extends ChangeNotifier {
     required int stock,
     required String unit,
     required String category,
+    File? imageFile,
   }) async {
     _isLoading = true;
     _error = '';
@@ -198,6 +202,7 @@ class ProductProvider extends ChangeNotifier {
         stock: stock,
         unit: unit,
         category: category,
+        imageFile: imageFile,
       );
 
       if (response['success'] == true) {

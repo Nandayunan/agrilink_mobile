@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import '../providers/product_provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/app_theme.dart';
@@ -41,128 +44,233 @@ class _FarmerProductsScreenState extends State<FarmerProductsScreen> {
       text: product?['unit'] ?? 'kg',
     );
     String selectedCategory = product?['category'] ?? 'Sayuran';
+    XFile? selectedImageXFile;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(product == null ? 'Tambah Produk' : 'Edit Produk'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nama Produk',
-                  hintText: 'Contoh: Tomat Segar',
-                ),
-              ),
-              const SizedBox(height: AppPadding.lg),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Deskripsi',
-                  hintText: 'Deskripsi produk',
-                ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: AppPadding.lg),
-              DropdownButtonFormField<String>(
-                value: selectedCategory,
-                decoration: const InputDecoration(labelText: 'Kategori'),
-                items: [
-                  'Sayuran',
-                  'Buah',
-                  'Beras',
-                  'Daging',
-                  'Telur',
-                  'Susu',
-                  'Lainnya'
-                ]
-                    .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-                    .toList(),
-                onChanged: (value) => selectedCategory = value ?? 'Sayuran',
-              ),
-              const SizedBox(height: AppPadding.lg),
-              TextField(
-                controller: priceController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Harga per Unit',
-                  hintText: 'Contoh: 15000',
-                  prefixText: 'Rp ',
-                ),
-              ),
-              const SizedBox(height: AppPadding.lg),
-              TextField(
-                controller: stockController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Stok',
-                  hintText: 'Contoh: 100',
-                ),
-              ),
-              const SizedBox(height: AppPadding.lg),
-              TextField(
-                controller: unitController,
-                decoration: const InputDecoration(
-                  labelText: 'Unit',
-                  hintText: 'Contoh: kg, pcs, liter',
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final productProvider = context.read<ProductProvider>();
-
-              if (product == null) {
-                // Create
-                await productProvider.createProduct(
-                  name: nameController.text,
-                  description: descriptionController.text,
-                  price: double.tryParse(priceController.text) ?? 0,
-                  stock: int.tryParse(stockController.text) ?? 0,
-                  unit: unitController.text,
-                  category: selectedCategory,
-                );
-              } else {
-                // Update
-                await productProvider.updateProduct(
-                  productId: product['id'],
-                  name: nameController.text,
-                  description: descriptionController.text,
-                  price: double.tryParse(priceController.text) ?? 0,
-                  stock: int.tryParse(stockController.text) ?? 0,
-                  unit: unitController.text,
-                  category: selectedCategory,
-                );
-              }
-
-              if (mounted) {
-                Navigator.pop(context);
-                _loadProducts();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      product == null
-                          ? 'Produk berhasil ditambahkan!'
-                          : 'Produk berhasil diperbarui!',
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(product == null ? 'Tambah Produk' : 'Edit Produk'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Image Preview & Picker
+                Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    color: AppTheme.backgroundColor,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(
+                      color: AppTheme.borderColor,
+                      width: 1,
                     ),
-                    backgroundColor: Colors.green,
                   ),
-                );
-              }
-            },
-            child: Text(product == null ? 'Tambah' : 'Simpan'),
+                  child: selectedImageXFile != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          child: kIsWeb
+                              ? Image.network(
+                                  selectedImageXFile!.path,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.file(
+                                  File(selectedImageXFile!.path),
+                                  fit: BoxFit.cover,
+                                ),
+                        )
+                      : product?['imageUrl'] != null &&
+                              product!['imageUrl'].toString().isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(AppRadius.md),
+                              child: Image.network(
+                                product['imageUrl'],
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.image_not_supported,
+                                        color: AppTheme.textGray,
+                                      ),
+                                      const SizedBox(height: AppPadding.sm),
+                                      const Text(
+                                        'Pilih gambar',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.textGray,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.image_not_supported,
+                                  color: AppTheme.textGray,
+                                ),
+                                const SizedBox(height: AppPadding.sm),
+                                const Text(
+                                  'Pilih gambar',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppTheme.textGray,
+                                  ),
+                                ),
+                              ],
+                            ),
+                ),
+                const SizedBox(height: AppPadding.md),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final ImagePicker picker = ImagePicker();
+                    final XFile? image = await picker.pickImage(
+                      source: ImageSource.gallery,
+                      imageQuality: 80,
+                    );
+                    if (image != null) {
+                      setState(() {
+                        selectedImageXFile = image;
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.image),
+                  label: const Text('Pilih Gambar'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                  ),
+                ),
+                const SizedBox(height: AppPadding.lg),
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nama Produk',
+                    hintText: 'Contoh: Tomat Segar',
+                  ),
+                ),
+                const SizedBox(height: AppPadding.lg),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Deskripsi',
+                    hintText: 'Deskripsi produk',
+                  ),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: AppPadding.lg),
+                DropdownButtonFormField<String>(
+                  value: selectedCategory,
+                  decoration: const InputDecoration(labelText: 'Kategori'),
+                  items: [
+                    'Sayuran',
+                    'Buah',
+                    'Beras',
+                    'Daging',
+                    'Telur',
+                    'Susu',
+                    'Lainnya'
+                  ]
+                      .map((cat) =>
+                          DropdownMenuItem(value: cat, child: Text(cat)))
+                      .toList(),
+                  onChanged: (value) => selectedCategory = value ?? 'Sayuran',
+                ),
+                const SizedBox(height: AppPadding.lg),
+                TextField(
+                  controller: priceController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Harga per Unit',
+                    hintText: 'Contoh: 15000',
+                    prefixText: 'Rp ',
+                  ),
+                ),
+                const SizedBox(height: AppPadding.lg),
+                TextField(
+                  controller: stockController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Stok',
+                    hintText: 'Contoh: 100',
+                  ),
+                ),
+                const SizedBox(height: AppPadding.lg),
+                TextField(
+                  controller: unitController,
+                  decoration: const InputDecoration(
+                    labelText: 'Unit',
+                    hintText: 'Contoh: kg, pcs, liter',
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final productProvider = context.read<ProductProvider>();
+
+                // Convert XFile to File untuk keduanya (Web dan Mobile)
+                File? imageFile;
+                if (selectedImageXFile != null) {
+                  imageFile = File(selectedImageXFile!.path);
+                }
+
+                if (product == null) {
+                  // Create
+                  await productProvider.createProduct(
+                    name: nameController.text,
+                    description: descriptionController.text,
+                    price: double.tryParse(priceController.text) ?? 0,
+                    stock: int.tryParse(stockController.text) ?? 0,
+                    unit: unitController.text,
+                    category: selectedCategory,
+                    imageFile: imageFile,
+                  );
+                } else {
+                  // Update
+                  await productProvider.updateProduct(
+                    productId: product['id'],
+                    name: nameController.text,
+                    description: descriptionController.text,
+                    price: double.tryParse(priceController.text) ?? 0,
+                    stock: int.tryParse(stockController.text) ?? 0,
+                    unit: unitController.text,
+                    category: selectedCategory,
+                    imageFile: imageFile,
+                  );
+                }
+
+                if (mounted) {
+                  Navigator.pop(context);
+                  _loadProducts();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        product == null
+                            ? 'Produk berhasil ditambahkan!'
+                            : 'Produk berhasil diperbarui!',
+                      ),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              },
+              child: Text(product == null ? 'Tambah' : 'Simpan'),
+            ),
+          ],
+        ),
       ),
     );
   }

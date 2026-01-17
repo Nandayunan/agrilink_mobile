@@ -145,84 +145,124 @@ router.get('/:productId', async (req, res) => {
 });
 
 // Create Product (Admin only)
-router.post('/', verifyToken, verifyAdminRole, async (req, res) => {
-    try {
-        const pool = req.app.locals.pool;
-        const { category, name, description, price, stock, unit, image_url } = req.body;
-
-        if (!category || !name || !price || !unit) {
+router.post('/', verifyToken, verifyAdminRole, (req, res, next) => {
+    const upload = req.app.locals.upload;
+    upload.single('image')(req, res, async (err) => {
+        if (err) {
             return res.status(400).json({
                 success: false,
-                message: 'Missing required fields',
+                message: err.message || 'File upload failed',
                 data: null
             });
         }
 
-        const [result] = await pool.query(
-            'INSERT INTO products (admin_id, category, name, description, price, stock, unit, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [req.user.id, category, name, description, price, stock || 0, unit, image_url]
-        );
+        try {
+            const pool = req.app.locals.pool;
+            const { category, name, description, price, stock, unit } = req.body;
 
-        res.status(201).json({
-            success: true,
-            message: 'Product created successfully',
-            data: {
-                id: result.insertId,
-                admin_id: req.user.id,
-                category,
-                name,
-                description,
-                price,
-                stock,
-                unit,
-                image_url
+            if (!category || !name || !price || !unit) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Missing required fields',
+                    data: null
+                });
             }
-        });
-    } catch (error) {
-        console.error('Create product error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to create product',
-            data: null
-        });
-    }
+
+            // Generate image URL if file was uploaded
+            let imageUrl = null;
+            if (req.file) {
+                imageUrl = `http://localhost:5000/uploads/products/${req.file.filename}`;
+            }
+
+            const [result] = await pool.query(
+                'INSERT INTO products (admin_id, category, name, description, price, stock, unit, image_url, is_available) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [req.user.id, category, name, description, price, stock || 0, unit, imageUrl, true]
+            );
+
+            res.status(201).json({
+                success: true,
+                message: 'Product created successfully',
+                data: {
+                    id: result.insertId,
+                    admin_id: req.user.id,
+                    category,
+                    name,
+                    description,
+                    price,
+                    stock: stock || 0,
+                    unit,
+                    image_url: imageUrl,
+                    is_available: true,
+                    created_at: new Date(),
+                    updated_at: new Date()
+                }
+            });
+        } catch (error) {
+            console.error('Create product error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to create product',
+                data: null
+            });
+        }
+    });
 });
 
 // Update Product (Admin only)
-router.put('/:productId', verifyToken, verifyAdminRole, async (req, res) => {
-    try {
-        const pool = req.app.locals.pool;
-        const { productId } = req.params;
-        const { category, name, description, price, stock, unit, image_url, is_available } = req.body;
-
-        // Check if product belongs to user
-        const [products] = await pool.query('SELECT admin_id FROM products WHERE id = ?', [productId]);
-        if (products.length === 0 || products[0].admin_id !== req.user.id) {
-            return res.status(403).json({
+router.put('/:productId', verifyToken, verifyAdminRole, (req, res, next) => {
+    const upload = req.app.locals.upload;
+    upload.single('image')(req, res, async (err) => {
+        if (err) {
+            return res.status(400).json({
                 success: false,
-                message: 'Unauthorized to update this product',
+                message: err.message || 'File upload failed',
                 data: null
             });
         }
 
-        await pool.query(
-            'UPDATE products SET category = ?, name = ?, description = ?, price = ?, stock = ?, unit = ?, image_url = ?, is_available = ? WHERE id = ?',
-            [category, name, description, price, stock, unit, image_url, is_available, productId]
-        );
+        try {
+            const pool = req.app.locals.pool;
+            const { productId } = req.params;
+            const { category, name, description, price, stock, unit, is_available } = req.body;
 
-        res.json({
-            success: true,
-            message: 'Product updated successfully',
-            data: null
-        });
-    } catch (error) {
-        console.error('Update product error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to update product',
-            data: null
-        });
-    }
+            // Check if product belongs to user
+            const [products] = await pool.query('SELECT admin_id, image_url FROM products WHERE id = ?', [productId]);
+            if (products.length === 0 || products[0].admin_id !== req.user.id) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Unauthorized to update this product',
+                    data: null
+                });
+            }
+
+            // Use new image URL if file was uploaded, otherwise keep existing
+            let imageUrl = products[0].image_url;
+            if (req.file) {
+                imageUrl = `http://localhost:5000/uploads/products/${req.file.filename}`;
+            }
+
+            await pool.query(
+                'UPDATE products SET category = ?, name = ?, description = ?, price = ?, stock = ?, unit = ?, image_url = ?, is_available = ? WHERE id = ?',
+                [category, name, description, price, stock || 0, unit, imageUrl, is_available !== undefined ? is_available : true, productId]
+            );
+
+            // Fetch updated product
+            const [updatedProducts] = await pool.query('SELECT * FROM products WHERE id = ?', [productId]);
+
+            res.json({
+                success: true,
+                message: 'Product updated successfully',
+                data: updatedProducts[0]
+            });
+        } catch (error) {
+            console.error('Update product error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to update product',
+                data: null
+            });
+        }
+    });
 });
 
 // Delete Product (Admin only)

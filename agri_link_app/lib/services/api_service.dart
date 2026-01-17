@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
+import 'dart:io';
 
 
 const bool useAndroidEmulator = false; // true = emulator, false = HP fisik
@@ -441,21 +443,51 @@ class ApiService {
     required int stock,
     required String unit,
     required String category,
+    File? imageFile,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/products'),
-        headers: await getHeaders(withAuth: true),
-        body: jsonEncode({
-          'name': name,
-          'description': description,
-          'price': price,
-          'stock': stock,
-          'unit': unit,
-          'category': category,
-        }),
+      final dio = Dio();
+      final token = await getToken();
+      
+      FormData formData = FormData.fromMap({
+        'name': name,
+        'description': description,
+        'price': price,
+        'stock': stock,
+        'unit': unit,
+        'category': category,
+      });
+
+      // Add image file jika ada
+      if (imageFile != null) {
+        final bytes = await imageFile.readAsBytes();
+        formData.files.add(MapEntry(
+          'image',
+          MultipartFile.fromBytes(
+            bytes,
+            filename: imageFile.path.split('/').last,
+          ),
+        ));
+      }
+
+      final response = await dio.post(
+        '$baseUrl/products',
+        data: formData,
+        options: Options(
+          headers: {
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
+        ),
       );
-      return _handleResponse(response);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'data': response.data['data']};
+      } else {
+        return {
+          'success': false,
+          'message': response.data['message'] ?? 'Failed to create product'
+        };
+      }
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
@@ -470,21 +502,51 @@ class ApiService {
     required int stock,
     required String unit,
     required String category,
+    File? imageFile,
   }) async {
     try {
-      final response = await http.put(
-        Uri.parse('$baseUrl/products/$productId'),
-        headers: await getHeaders(withAuth: true),
-        body: jsonEncode({
-          'name': name,
-          'description': description,
-          'price': price,
-          'stock': stock,
-          'unit': unit,
-          'category': category,
-        }),
+      final dio = Dio();
+      final token = await getToken();
+      
+      FormData formData = FormData.fromMap({
+        'name': name,
+        'description': description,
+        'price': price,
+        'stock': stock,
+        'unit': unit,
+        'category': category,
+      });
+
+      // Add image file jika ada
+      if (imageFile != null) {
+        final bytes = await imageFile.readAsBytes();
+        formData.files.add(MapEntry(
+          'image',
+          MultipartFile.fromBytes(
+            bytes,
+            filename: imageFile.path.split('/').last,
+          ),
+        ));
+      }
+
+      final response = await dio.put(
+        '$baseUrl/products/$productId',
+        data: formData,
+        options: Options(
+          headers: {
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
+        ),
       );
-      return _handleResponse(response);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': response.data['data']};
+      } else {
+        return {
+          'success': false,
+          'message': response.data['message'] ?? 'Failed to update product'
+        };
+      }
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
