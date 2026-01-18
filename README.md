@@ -17,26 +17,63 @@ IP address laptop **BERUBAH** setiap kali pindah network WiFi. Jika tidak di-upd
 
 ---
 
-## Struktur Frontend Mobile
+## Struktur Aplikasi (Frontend & Backend)
 
-Aplikasi ini dibagi menjadi dua role utama: **Petani** dan **Restoran**. Berikut adalah pembagian layar (screens) berdasarkan role:
+### Struktur Pohon
 
-### 👨‍🌾 Role: Petani (Admin)
-Fitur-fitur untuk petani dikelola melalui role `admin` di database.
-- **`FarmerProductsScreen`**: Manajemen Produk (Tambah, Edit, Hapus produk hasil panen).
-- **`OrderApprovalScreen`**: Persetujuan Pesanan (Menerima atau menolak pesanan dari restoran).
-- **`WeatherScreen`**: Informasi Cuaca untuk membantu perencanaan pertanian.
-- **`ProfileScreen`**: Pengaturan profil petani.
-
-### 🍽️ Role: Restoran (User)
-Fitur-fitur untuk restoran/pembeli.
-- **`RestaurantDashboardScreen`**: Dashboard Utama untuk memantau aktivitas terkini.
-- **`HomeScreen`**: Katalog Produk untuk menjelajahi hasil panen yang tersedia.
-- **`OrdersScreen`**: Riwayat Pesanan dan status pesanan.
-- **`CartScreen`**: Keranjang Belanja sebelum checkout.
-- **`CheckoutScreen`**: Proses pembayaran dan pemesanan.
-- **`WeatherScreen`**: Informasi cuaca relevan.
-- **`ProfileScreen`**: Pengaturan profil restoran.
+```text
+agrilink_mobile
+ ┣ agri_link_app (Frontend Mobile)
+ ┃ ┗ lib
+ ┃   ┣ models
+ ┃   ┃ ┣ cart_item.dart
+ ┃   ┃ ┣ message.dart
+ ┃   ┃ ┣ order.dart
+ ┃   ┃ ┣ product.dart
+ ┃   ┃ ┗ user.dart
+ ┃   ┣ providers
+ ┃   ┃ ┣ auth_provider.dart      <-- (State Management: Auth)
+ ┃   ┃ ┣ cart_provider.dart      <-- (State Management: Cart)
+ ┃   ┃ ┣ message_provider.dart   <-- (State Management: Chat)
+ ┃   ┃ ┣ order_provider.dart     <-- (State Management: Orders)
+ ┃   ┃ ┣ product_provider.dart   <-- (State Management: Products)
+ ┃   ┃ ┗ weather_provider.dart   <-- (State Management: Weather)
+ ┃   ┣ screens
+ ┃   ┃ ┣ about_screen.dart       <-- (Info App)
+ ┃   ┃ ┣ cart_screen.dart        <-- (Restoran: Keranjang)
+ ┃   ┃ ┣ checkout_screen.dart    <-- (Restoran: Pembayaran)
+ ┃   ┃ ┣ farmer_products_screen.dart  <-- (Petani: Kelola Produk)
+ ┃   ┃ ┣ home_screen.dart        <-- (Restoran: Homepage)
+ ┃   ┃ ┣ login_screen.dart       <-- (Auth: Login)
+ ┃   ┃ ┣ order_approval_screen.dart   <-- (Petani: Konfirmasi Order)
+ ┃   ┃ ┣ orders_screen.dart      <-- (Restoran: Riwayat Order)
+ ┃   ┃ ┣ product_detail_screen.dart   <-- (Restoran: Detail Produk)
+ ┃   ┃ ┣ profile_screen.dart     <-- (Shared: Profil User)
+ ┃   ┃ ┣ register_screen.dart    <-- (Auth: Register)
+ ┃   ┃ ┣ restaurant_dashboard_screen.dart <-- (Restoran: Dashboard)
+ ┃   ┃ ┣ splash_screen.dart      <-- (Intro)
+ ┃   ┃ ┗ weather_screen.dart     <-- (Shared: Cuaca)
+ ┃   ┣ services
+ ┃   ┃ ┗ api_service.dart        <-- (HTTP Requests ke Backend)
+ ┃   ┣ utils
+ ┃   ┃ ┣ app_theme.dart          <-- (Tema & Styling)
+ ┃   ┃ ┗ helpers.dart            <-- (Helper Functions)
+ ┃   ┣ widgets
+ ┃   ┃ ┗ custom_widgets.dart     <-- (Reusable Components)
+ ┃   ┗ main.dart                 <-- (Entry Point)
+ ┗ agri_link_backend (Backend API)
+   ┣ middleware
+   ┣ routes
+   ┃ ┣ admin.js           <-- (Petani/Admin)
+   ┃ ┣ auth.js            <-- (Auth System)
+   ┃ ┣ cart.js            <-- (Restoran)
+   ┃ ┣ messages.js        <-- (Shared)
+   ┃ ┣ orders.js          <-- (Shared: Restoran Order, Petani Approve)
+   ┃ ┣ products.js        <-- (Shared: Petani Manage, Restoran View)
+   ┃ ┣ users.js           <-- (Profile Management)
+   ┃ ┗ weather.js         <-- (Weather Info)
+   ┗ server.js
+```
 
 ---
 
