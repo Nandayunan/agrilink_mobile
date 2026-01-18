@@ -8,6 +8,7 @@ import '../providers/auth_provider.dart';
 import '../utils/app_theme.dart';
 import '../utils/helpers.dart';
 import '../widgets/custom_widgets.dart';
+import 'about_screen.dart';
 
 class FarmerProductsScreen extends StatefulWidget {
   const FarmerProductsScreen({Key? key}) : super(key: key);
@@ -315,9 +316,18 @@ class _FarmerProductsScreenState extends State<FarmerProductsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: 'Kelola Produk',
         showBackButton: false,
+        leading: IconButton(
+          icon: const Icon(Icons.info_outline, color: Colors.black87),
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AboutScreen()),
+            );
+          },
+          tooltip: 'Tentang Aplikasi',
+        ),
       ),
       backgroundColor: AppTheme.backgroundColor,
       floatingActionButton: FloatingActionButton(

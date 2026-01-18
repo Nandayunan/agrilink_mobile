@@ -7,6 +7,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBackPressed;
   final List<Widget>? actions;
   final double elevation;
+  final Widget? leading;
 
   const CustomAppBar({
     required this.title,
@@ -14,6 +15,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBackPressed,
     this.actions,
     this.elevation = 0,
+    this.leading,
   });
 
   @override
@@ -22,12 +24,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: elevation,
       backgroundColor: AppTheme.white,
       title: Text(title),
-      leading: showBackButton
-          ? IconButton(
-              icon: const Icon(Icons.arrow_back_ios, size: 20),
-              onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
-            )
-          : null,
+      leading: leading ??
+          (showBackButton
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back_ios, size: 20),
+                  onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
+                )
+              : null),
       actions: actions,
     );
   }
