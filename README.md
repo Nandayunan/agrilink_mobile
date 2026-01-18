@@ -77,6 +77,18 @@ agrilink_mobile
 
 ---
 
+## Credentials
+
+### Role Petani
+- **Email:** Petani@agrilink.com
+- **Password:** Petani
+
+### Role Restoran
+- **Email:** Restoran@agrilink.com
+- **Password:** Restoran
+
+---
+
 ## Cara Install & Setup
 
 ### Prerequisites
