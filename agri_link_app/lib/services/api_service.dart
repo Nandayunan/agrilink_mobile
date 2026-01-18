@@ -23,7 +23,7 @@ class ApiService {
         // Cara cek IP: Windows: ipconfig | Linux/Mac: ifconfig
         // Setelah ubah IP, WAJIB rebuild: flutter clean && flutter run
         // Dokumentasi lengkap: lihat CONFIGURATION.md
-        return 'http://192.168.1.5:5000/api'; // ⚠️ UPDATE IP INI jika timeout/connection error!
+        return 'http://10.50.10.228:5000/api'; // ⚠️ UPDATE IP INI jika timeout/connection error!
       }
     }
 

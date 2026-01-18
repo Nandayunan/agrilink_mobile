@@ -19,7 +19,7 @@ IP address laptop **BERUBAH** setiap kali pindah network WiFi. Jika tidak di-upd
 
 ## Struktur Aplikasi (Frontend & Backend)
 
-### Struktur Pohon
+### Project Structure
 
 ```text
 agrilink_mobile
